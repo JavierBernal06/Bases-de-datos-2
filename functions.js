@@ -17,10 +17,10 @@ const apellidosItalianos = [
     "NULL", "Rossi", "Ferrari", "Esposito", "Bianchi", "Romano", "Colombo", "Ricci", "Marino", "Greco",
     "Bruno", "Gallo", "Conti", "De Luca", "Mancini", "Costa", "Giordano", "Rizzo", "Lombardi", "Moretti",
     "Barbieri", "Fontana", "Santoro", "Mariani", "Rinaldi", "Caruso", "Ferrara", "Galli", "Martini", "Leone",
-    "Longo", "Gentile", "Martinelli", "Vitale", "Lombardo", "Serra", "Coppola", "De Santis", "D'Angelo", "Marchetti",
+    "Longo", "Gentile", "Martinelli", "Vitale", "Lombardo", "Serra", "Coppola", "De Santis", "D Angelo", "Marchetti",
     "Parisi", "Villa", "Conte", "Ferraro", "Ferri", "Fabbri", "Bianco", "Marra", "Pagano", "Sorrentino",
     "Farina", "Donati", "Pellegrini", "Carbone", "Benedetti", "Silvestri", "Mazza", "Piras", "Sanna", "Grassi",
-    "Russo", "D'Amico", "Amato", "Bellini", "Basile", "Riva", "Donati", "Vicini", "Basso", "Puccini",
+    "Russo", "D Amico", "Amato", "Bellini", "Basile", "Riva", "Donati", "Vicini", "Basso", "Puccini",
     "Guerra", "Festa", "Mura", "Palumbo", "Sanna", "Valenti", "Neri", "Sala", "Tosi", "Vitali",
     "Baresi", "Maldini", "Zoff", "Pirlo", "Baggio", "Totti", "Del Piero", "Buffon", "Nesta", "Cannavaro",
     "Chiellini", "Bonucci", "Verratti", "Insigne", "Zola", "Vieri", "Riva", "Mazzola", "Facchetti", "Scirea"
@@ -100,6 +100,43 @@ function generarSQL() {
     document.getElementById("salida").innerHTML = salida;
 }
 function generarSQLpostgresql() {
+    //contenidoGenerado = "SET client_encoding = 'UTF8';";  // ← línea agregada
+    contenidoGenerado += "INSERT INTO alumnos VALUES ";
+    var numeroMatricula = 224250000;
+    var nombreCompleto = "";
+    var cantidadRegistros = document.getElementById('registros').value;
+    var nombreSecundario = "";
+
+    for (let i = 0; i < cantidadRegistros; i++) {
+        let apellidoPaterno = apellidosPaternos[Math.floor(Math.random() * apellidosPaternos.length)];
+        let apellidoMaterno = apellidosMaternos[Math.floor(Math.random() * apellidosMaternos.length)];
+        let tieneSegundoNombre = Math.random() < 0.5;
+
+        let segundoApellido;
+        if (apellidoMaterno === "NULL") {
+            segundoApellido = "NULL";
+        } else {
+            segundoApellido = `UPPER('${apellidoMaterno}')`;
+        }
+
+        nombreCompleto = nombresPrimarios[Math.floor(Math.random() * nombresPrimarios.length)];
+        if (tieneSegundoNombre) {
+            nombreSecundario = nombresSecundarios[Math.floor(Math.random() * nombresSecundarios.length)];
+            nombreCompleto += ` ${nombreSecundario}`;
+        }
+
+        let anio = 2000 + Math.floor(Math.random() * 8);
+        let mes = String(1 + Math.floor(Math.random() * 12)).padStart(2, '0');
+        let dia = String(1 + Math.floor(Math.random() * 28)).padStart(2, '0');
+        let fechaNacimiento = `${anio}-${mes}-${dia}`;
+
+        let sexo = sexos[Math.floor(Math.random() * sexos.length)];
+
+        contenidoGenerado += `(${numeroMatricula + i},UPPER('${apellidoPaterno}'), ${segundoApellido}, '${nombreCompleto}','a${numeroMatricula + i}@unison.mx','${fechaNacimiento}','${sexo}'),\n`;
+    }
+
+    contenidoGenerado = contenidoGenerado.slice(0, -2) + ";";
+    document.getElementById("salida").innerHTML = contenidoGenerado;
  
 }
 function generarSQLCSV() {
