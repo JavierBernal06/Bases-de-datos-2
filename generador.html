@@ -1,23 +1,246 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de alumnos</title>
-    <script src="./js/functions.js"></script>
+    <title>Generador de Alumnos | Pro Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent: #38bdf8; 
+            --accent-hover: #7dd3fc;
+            --success: #2dd4bf; 
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 32px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .grid-controles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        input[type="number"],
+        select {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: white;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-generar {
+            background: var(--accent);
+            color: #0f172a;
+        }
+
+        .btn-generar:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.3);
+        }
+
+        .btn-guardar {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-guardar:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--text-muted);
+        }
+
+        .btns-quick {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-quick {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-muted);
+            padding: 6px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-quick:hover {
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .output-container {
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 8px;
+        }
+
+        #salida {
+            background: #020617;
+            border-radius: 16px;
+            padding: 24px;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--success);
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid rgba(45, 212, 191, 0.2);
+        }
+
+        #salida::-webkit-scrollbar { width: 8px; }
+        #salida::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
-    numero de registros: <input type="number" id="registros" value="1" min="1" max="50000">
-    <input type="button" value="Registros 1" onclick="document.getElementById('registros').value=1;">
-    <input type="button" value="Registros 50000" onclick="document.getElementById('registros').value=50000;">
-    tipo de archivo <Select id="opcion">
-        <option value="1">SQL MySQL/MariaDB</option>
-        <option value="2">Postgresql</option>
-        <option value="3">CSV</option>
-        <option value="4">JSON</option>
-    </Select>
-    <input type="button" value="Generar" onclick="generar()">
-      <input type="button" value="Guardar" onclick="guardarArchivo()">
-    <p id="salida"></p>
+
+<div class="wrapper">
+    <h1>Data Generator</h1>
+
+    <div class="grid-controles">
+        <div class="campo">
+            <label for="registros">Cantidad de Registros</label>
+            <input type="number" id="registros" value="1" min="1" max="50000">
+            <div class="btns-quick">
+                <button class="btn-quick" onclick="setQty(1)">1</button>
+                <button class="btn-quick" onclick="setQty(100)">100</button>
+                <button class="btn-quick" onclick="setQty(1000)">1k</button>
+                <button class="btn-quick" onclick="setQty(50000)">50k</button>
+            </div>
+        </div>
+
+        <div class="campo">
+            <label for="opcion">Formato de Exportación</label>
+            <select id="opcion">
+                <option value="1">SQL — MySQL / MariaDB</option>
+                <option value="2">SQL — PostgreSQL</option>
+                <option value="3">Archivo CSV</option>
+                <option value="4">Objeto JSON</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-generar" onclick="generar()">
+            <span>⚡</span> Generar Datos
+        </button>
+        <button class="btn btn-guardar" onclick="guardarArchivo()">
+            <span>💾</span> Guardar Como...
+        </button>
+    </div>
+
+    <div class="output-container">
+        <div class="output-header">
+            <label>Consola de Salida</label>
+        </div>
+        <p id="salida"></p>
+    </div>
+</div>
+
+<script>
+    function setQty(val) {
+        document.getElementById('registros').value = val;
+    }
+</script>
+<script src="./js/functions.js"></script>
 </body>
 </html>
