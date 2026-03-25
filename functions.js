@@ -1,6 +1,6 @@
-var salida= "";
+var contenidoGenerado= "";
  
-const apellidosMexico = [
+const apellidosPaternos = [
     "Villanueva", "Quiroz", "Palacios", "Zavala", "Aguirre", "Castañeda", "Valenzuela", "Salas", "Paredes", "Salgado",
     "Leyva", "Escobar", "Rendón", "Montes", "Cano", "Córdova", "Rosas", "Pacheco", "Navarrete", "Cisneros",
     "Guerra", "Mora", "Peña", "Cárdenas", "Villarreal", "Barrera", "Peralta", "Arroyo", "Bernal", "Soto",
@@ -13,7 +13,7 @@ const apellidosMexico = [
     "Bañuelos", "Jaimes", "Calvillo", "Cabrero", "Soria", "Velasco", "Manzano", "Alcántar", "Posadas", "Murillo"
 ];
 
-const apellidosItalianos = [ 
+const apellidosMaternos = [ 
     "NULL", "Rossi", "Ferrari", "Esposito", "Bianchi", "Romano", "Colombo", "Ricci", "Marino", "Greco",
     "Bruno", "Gallo", "Conti", "De Luca", "Mancini", "Costa", "Giordano", "Rizzo", "Lombardi", "Moretti",
     "Barbieri", "Fontana", "Santoro", "Mariani", "Rinaldi", "Caruso", "Ferrara", "Galli", "Martini", "Leone",
@@ -26,7 +26,7 @@ const apellidosItalianos = [
     "Chiellini", "Bonucci", "Verratti", "Insigne", "Zola", "Vieri", "Riva", "Mazzola", "Facchetti", "Scirea"
 ];
 
-const nombresMexicanos = [ 
+const nombresPrimarios = [ 
     "Sebastian", "Ximena", "Iker", "Regina", "Mateo", "Camila", "Leonardo", "Valentina", "Nicolas", "Renata",
     "Emiliano", "Victoria", "Dante", "Natalia", "Mauricio", "Fernanda", "Gabriel", "Luciana", "Julian", "Daniela",
     "Rodrigo", "Mariana", "Samuel", "Andrea", "Fabian", "Elena", "Elias", "Paola", "Adrian", "Sofia",
@@ -39,7 +39,9 @@ const nombresMexicanos = [
     "Heriberto", "Virginia", "Modesto", "Lidia", "Casimiro", "Eulalia", "Toribio", "Rufina", "Anacleto", "Trinidad"
 ];
 
-const nombresJaponeses = [ 
+const sexos = ["MUJER", "HOMBRE", "NO BINARIO"];
+
+const nombresSecundarios = [ 
     "Hiroshi", "Takumi", "Kenji", "Akira", "Yuki", "Haruto", "Sota", "Ren", "Itsuki", "Sho",
     "Sakura", "Hana", "Aoi", "Yui", "Mei", "Hinata", "Rio", "Anzu", "Koharu", "Mio",
     "Kaito", "Daiki", "Tsubasa", "Riku", "Sora", "Hayate", "Kota", "Yuto", "Arata", "Ryusei",
@@ -52,55 +54,84 @@ const nombresJaponeses = [
     "Ibuki", "Makoto", "Elena", "Yun", "Yang", "Oro", "Necro", "Remy", "Q", "Twelve"
 ];
 function generar() {
-    var opcion = document.getElementById("opcion").value;
- 
-    switch (opcion) {
+    var opcionSeleccionada = document.getElementById("opcion").value;
+
+    switch (opcionSeleccionada) {
         case "1": generarSQL(); break;
-        case "2": generarSQL(); break;
+        case "2": generarSQLpostgresql(); break;
         case "3": generarSQLCSV(); break;
         case "4": generarJSON(); break;
- 
     }
- 
- 
 }
- 
+
 function generarSQL() {
-     salida = "INSERT INTO alumnos VALUES ";
-    var matricula = 224250000;
-    var nombre = "";
-    var registros = 0;
-    registros = document.getElementById('registros').value;
-    var nombreFrances = "";
-    for (let i = 0; i < registros; i++) {
-        let apellidoMex = apellidosMexico[Math.floor(Math.random() * apellidosMexico.length)];
-        let apellidoItal = apellidosItalianos[Math.floor(Math.random() * apellidosItalianos.length)];
+    contenidoGenerado  = "DROP DATABASE IF EXISTS sistema_escolar;\n";
+    contenidoGenerado += "CREATE DATABASE IF NOT EXISTS sistema_escolar;\n";
+    contenidoGenerado += "USE sistema_escolar;\n\n";
+    contenidoGenerado += "DROP TABLE IF EXISTS alumnos;\n";
+    contenidoGenerado += "CREATE TABLE IF NOT EXISTS alumnos (\n";
+    contenidoGenerado += "    expediente BIGINT NOT NULL UNIQUE CHECK (LENGTH(expediente)=9 AND expediente > 0),\n";
+    contenidoGenerado += "    app1 VARCHAR(255) NOT NULL CHECK(LENGTH(TRIM(app1))>0),\n";
+    contenidoGenerado += "    app2 VARCHAR(255) CHECK(app2 IS NULL OR LENGTH(TRIM(app2))>0),\n";
+    contenidoGenerado += "    nombres VARCHAR(255) NOT NULL CHECK(LENGTH(TRIM(nombres))>0),\n";
+    contenidoGenerado += "    correo VARCHAR(255) NOT NULL UNIQUE,\n";
+    contenidoGenerado += "    fecha_nacimiento DATE NOT NULL,\n";
+    contenidoGenerado += "    sexo ENUM('MUJER','HOMBRE','NO BINARIO') NOT NULL,\n";
+    contenidoGenerado += "    CONSTRAINT chk_correo_formato CHECK(correo=CONCAT(\"a\",expediente,\"@unison.mx\"))\n";
+    contenidoGenerado += ");\n\n";
+    contenidoGenerado += "INSERT INTO alumnos VALUES ";
+    var numeroMatricula = 224250000;
+    var nombreCompleto = "";
+    var cantidadRegistros = 0;
+    cantidadRegistros = document.getElementById('registros').value;
+    var nombreSecundario = "";
+
+    for (let i = 0; i < cantidadRegistros; i++) {
+        let apellidoPaterno = apellidosPaternos[Math.floor(Math.random() * apellidosPaternos.length)];
+        let apellidoMaterno = apellidosMaternos[Math.floor(Math.random() * apellidosMaternos.length)];
         let tieneSegundoNombre = Math.random() < 0.5;
         console.log(tieneSegundoNombre);
+
         let segundoApellido;
-        if (apellidoItal === "NULL") {
+        if (apellidoMaterno === "NULL") {
             segundoApellido = "NULL";
         } else {
-            segundoApellido = `UPPER('${apellidoItal}')`;
+            segundoApellido = `UPPER('${apellidoMaterno}')`;
         }
-        nombre = "";
-        nombreJapones = "";
-        if (tieneSegundoNombre == 0) {
-            nombre = nombresMexicanos[Math.floor(Math.random() * nombresMexicanos.length)];
-        } else {
-            nombre = nombresMexicanos[Math.floor(Math.random() * nombresMexicanos.length)];
-            nombreJapones = nombresJaponeses[Math.floor(Math.random() * nombresJaponeses.length)];
-            nombre += ` ${nombreJapones}`;
+
+        nombreCompleto = nombresPrimarios[Math.floor(Math.random() * nombresPrimarios.length)];
+        if (tieneSegundoNombre) {
+            nombreSecundario = nombresSecundarios[Math.floor(Math.random() * nombresSecundarios.length)];
+            nombreCompleto += ` ${nombreSecundario}`;
         }
-        salida += `(${matricula + i},UPPER('${apellidoMex}'), ${segundoApellido}, '${nombre}','a${matricula + i}@unison.mx'),
- 
-`;
+
+        // Fecha de nacimiento aleatoria entre 2000 y 2007
+        let anio = 2000 + Math.floor(Math.random() * 8);
+        let mes = String(1 + Math.floor(Math.random() * 12)).padStart(2, '0');
+        let dia = String(1 + Math.floor(Math.random() * 28)).padStart(2, '0');
+        let fechaNacimiento = `${anio}-${mes}-${dia}`;
+
+        let sexo = sexos[Math.floor(Math.random() * sexos.length)];
+
+        contenidoGenerado += `(${numeroMatricula + i},UPPER('${apellidoPaterno}'), ${segundoApellido}, '${nombreCompleto}','a${numeroMatricula + i}@unison.mx','${fechaNacimiento}','${sexo}'),\n`;
     }
-    salida = salida.slice(0, -4) + ";";
-    document.getElementById("salida").innerHTML = salida;
+
+    contenidoGenerado = contenidoGenerado.slice(0, -2) + ";";
+    document.getElementById("salida").innerHTML = contenidoGenerado;
 }
+
 function generarSQLpostgresql() {
-    //contenidoGenerado = "SET client_encoding = 'UTF8';";  // ← línea agregada
+    contenidoGenerado  = "DROP TABLE IF EXISTS alumnos;\n\n";
+    contenidoGenerado += "CREATE TABLE IF NOT EXISTS alumnos (\n";
+    contenidoGenerado += "    expediente BIGINT NOT NULL UNIQUE CHECK (LENGTH(expediente::TEXT)=9 AND expediente > 0),\n";
+    contenidoGenerado += "    app1 VARCHAR(255) NOT NULL CHECK(LENGTH(TRIM(app1))>0),\n";
+    contenidoGenerado += "    app2 VARCHAR(255) CHECK(app2 IS NULL OR LENGTH(TRIM(app2))>0),\n";
+    contenidoGenerado += "    nombres VARCHAR(255) NOT NULL CHECK(LENGTH(TRIM(nombres))>0),\n";
+    contenidoGenerado += "    correo VARCHAR(255) NOT NULL UNIQUE,\n";
+    contenidoGenerado += "    fecha_nacimiento DATE NOT NULL,\n";
+    contenidoGenerado += "    sexo VARCHAR(20) NOT NULL CHECK(sexo IN ('MUJER','HOMBRE','NO BINARIO')),\n";
+    contenidoGenerado += "    CONSTRAINT chk_correo_formato CHECK(correo = 'a' || expediente::TEXT || '@unison.mx')\n";
+    contenidoGenerado += ");\n\n";
     contenidoGenerado += "INSERT INTO alumnos VALUES ";
     var numeroMatricula = 224250000;
     var nombreCompleto = "";
@@ -137,108 +168,130 @@ function generarSQLpostgresql() {
 
     contenidoGenerado = contenidoGenerado.slice(0, -2) + ";";
     document.getElementById("salida").innerHTML = contenidoGenerado;
- 
 }
 function generarSQLCSV() {
-    salida = "matricula, apellido1, apellido2, nombre, correo\n";
-    var matricula = 224250000;
-    var nombre = "";
-    var registros = 0;
-    registros = document.getElementById('registros').value;
-    var nombreJapones = "";
-    for (let i = 0; i < registros; i++) {
-        let apellidoMex = apellidosMexico[Math.floor(Math.random() * apellidosMexico.length)];
-        let apellidoItal = apellidosItalianos[Math.floor(Math.random() * apellidosItalianos.length)];
+    contenidoGenerado = "matricula, apellido1, apellido2, nombre, correo\n";
+    var numeroMatricula = 224250000;
+    var nombreCompleto = "";
+    var cantidadRegistros = 0;
+    cantidadRegistros = document.getElementById('registros').value;
+    var nombreSecundario = "";
+
+    for (let i = 0; i < cantidadRegistros; i++) {
+        let apellidoPaterno = apellidosPaternos[Math.floor(Math.random() * apellidosPaternos.length)];
+        let apellidoMaterno = apellidosMaternos[Math.floor(Math.random() * apellidosMaternos.length)];
         let tieneSegundoNombre = Math.random() < 0.5;
         console.log(tieneSegundoNombre);
+
         let segundoApellido;
-        if (apellidoItal === "NULL") {
+        if (apellidoMaterno === "NULL") {
             segundoApellido = "NULL";
         } else {
-            segundoApellido = `${apellidoItal}`;
+            segundoApellido = `${apellidoMaterno}`;
         }
-        nombre = "";
-        nombreJapones = "";
-        if (tieneSegundoNombre == 0) {
-            nombre = nombresMexicanos[Math.floor(Math.random() * nombresMexicanos.length)];
-        } else {
-            nombre = nombresMexicanos[Math.floor(Math.random() * nombresMexicanos.length)];
-            nombreJapones = nombresJaponeses[Math.floor(Math.random() * nombresJaponeses.length)];
-            nombre += ` ${nombreJapones}`;
+
+        nombreCompleto = nombresPrimarios[Math.floor(Math.random() * nombresPrimarios.length)];
+        if (tieneSegundoNombre) {
+            nombreSecundario = nombresSecundarios[Math.floor(Math.random() * nombresSecundarios.length)];
+            nombreCompleto += ` ${nombreSecundario}`;
         }
-        salida += `${matricula + i},${apellidoMex},${segundoApellido},${nombre},a${matricula + i}@unison.mx\n`;
+
+        contenidoGenerado += `${numeroMatricula + i},${apellidoPaterno},${segundoApellido},${nombreCompleto},a${numeroMatricula + i}@unison.mx\n`;
     }
-    // salida = salida.slice(0, 0);
-    document.getElementById("salida").innerHTML = salida;
+
+    document.getElementById("salida").innerHTML = contenidoGenerado;
 }
+
 function generarJSON() {
-    salida = "[\n"; 
-    var matricula = 224250000;
-    var registros = document.getElementById('registros').value;
+    contenidoGenerado = "[\n";
+    var numeroMatricula = 224250000;
+    var cantidadRegistros = document.getElementById('registros').value;
 
-    for (let i = 0; i < registros; i++) {
-        let apellidoMex = apellidosMexico[Math.floor(Math.random() * apellidosMexico.length)];
-        let apellidoItal = apellidosItalianos[Math.floor(Math.random() * apellidosItalianos.length)];
-        let nombreMex = nombresMexicanos[Math.floor(Math.random() * nombresMexicanos.length)];
-        
-        let nombreCompleto = nombreMex;
+    for (let i = 0; i < cantidadRegistros; i++) {
+        let apellidoPaterno = apellidosPaternos[Math.floor(Math.random() * apellidosPaternos.length)];
+        let apellidoMaterno = apellidosMaternos[Math.floor(Math.random() * apellidosMaternos.length)];
+        let nombrePrimario = nombresPrimarios[Math.floor(Math.random() * nombresPrimarios.length)];
+
+        let nombreCompleto = nombrePrimario;
         if (Math.random() < 0.5) {
-            let nombreJapones = nombresJaponeses[Math.floor(Math.random() * nombresJaponeses.length)];
-            nombreCompleto += ` ${nombreJapones}`;
+            let nombreSecundario = nombresSecundarios[Math.floor(Math.random() * nombresSecundarios.length)];
+            nombreCompleto += ` ${nombreSecundario}`;
         }
 
-        salida += `  {\n`;
-        salida += `    "matricula": ${matricula + i},\n`;
-        salida += `    "apellido1": "${apellidoMex}",\n`;
-        salida += `    "apellido2": "${apellidoItal}",\n`;
-        salida += `    "nombre": "${nombreCompleto}",\n`;
-        salida += `    "correojson": "a${matricula + i}@unison.mx"\n`;
-        
-        salida += (i < registros - 1) ? `  },\n` : `  }\n`;
+        contenidoGenerado += `  {\n`;
+        contenidoGenerado += `    "matricula": ${numeroMatricula + i},\n`;
+        contenidoGenerado += `    "apellido1": "${apellidoPaterno}",\n`;
+        contenidoGenerado += `    "apellido2": "${apellidoMaterno}",\n`;
+        contenidoGenerado += `    "nombre": "${nombreCompleto}",\n`;
+        contenidoGenerado += `    "correojson": "a${numeroMatricula + i}@unison.mx"\n`;
+
+        contenidoGenerado += (i < cantidadRegistros - 1) ? `  },\n` : `  }\n`;
     }
 
-    salida += "]";
-    
-    document.getElementById('salida').innerHTML = salida.replace(/\n/g, "<br>");
-    
-    return salida; 
+    contenidoGenerado += "]";
+
+    document.getElementById('salida').innerHTML = contenidoGenerado.replace(/\n/g, "<br>");
+
+    return contenidoGenerado;
 }
+
 function guardarArchivo() {
-   
-    let contenidoLimpio = salida.split('<br>').join('\n');
-    
-    
-    var blob = new Blob([contenidoLimpio], { type: "text/plain;charset=utf-8" });
-    var url = URL.createObjectURL(blob);
-    
-    var var1 = document.createElement("a");
-    var1.setAttribute("href", url);
+    let contenidoLimpio = contenidoGenerado.split('<br>').join('\n');
 
-    var opcion = document.getElementById("opcion").value;
+    var archivoBlob = new Blob([contenidoLimpio], { type: "text/plain;charset=utf-8" });
+    var urlArchivo = URL.createObjectURL(archivoBlob);
 
-    switch (opcion) {
-        case "1": 
-            var1.setAttribute("download", "sistema_escolar.sql"); 
-            alert("Generando archivo SQL"); 
+    var enlaceDescarga = document.createElement("a");
+    enlaceDescarga.setAttribute("href", urlArchivo);
+
+    var opcionSeleccionada = document.getElementById("opcion").value;
+
+    switch (opcionSeleccionada) {
+        case "1":
+            enlaceDescarga.setAttribute("download", "sistema_escolar.sql");
+            alert("Generando archivo SQL");
             break;
-        case "2": 
-            var1.setAttribute("download", "sistema_escolar.sql"); 
-            alert("Generando archivo Postgres"); 
+        case "2":
+            guardarArchivoPostgres();
+            return;
+        case "3":
+            enlaceDescarga.setAttribute("download", "sistema_escolar.csv");
+            alert("Generando archivo CSV");
             break;
-        case "3": 
-            var1.setAttribute("download", "sistema_escolar.csv"); 
-            alert("Generando archivo CSV"); 
-            break;
-        case "4": 
-            var1.setAttribute("download", "sistema_escolar.json"); 
-            alert("Generando archivo JSON"); 
+        case "4":
+            enlaceDescarga.setAttribute("download", "sistema_escolar.json");
+            alert("Generando archivo JSON");
             break;
     }
 
-    var1.style.display = "none";
-    document.body.appendChild(var1);
-    var1.click();
-    
-    document.body.removeChild(var1);
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+    enlaceDescarga.style.display = "none";
+    document.body.appendChild(enlaceDescarga);
+    enlaceDescarga.click();
+
+    document.body.removeChild(enlaceDescarga);
+    setTimeout(() => URL.revokeObjectURL(urlArchivo), 100);
+}
+
+function guardarArchivoPostgres() {
+    // Normalizar el contenido: eliminar caracteres no válidos en UTF-8
+    let contenidoLimpio = contenidoGenerado
+        .split('<br>').join('\n')
+        .replace(/\u00a0/g, ' ')   // reemplaza non-breaking space por espacio normal
+        .normalize('NFC');          // normaliza caracteres Unicode a forma compuesta
+
+    var archivoBlob = new Blob([contenidoLimpio], { type: "text/plain;charset=utf-8" });
+    var urlArchivo = URL.createObjectURL(archivoBlob);
+
+    var enlaceDescarga = document.createElement("a");
+    enlaceDescarga.setAttribute("href", urlArchivo);
+    enlaceDescarga.setAttribute("download", "sistema_escolar_postgres.sql");
+
+    alert("Generando archivo SQL PostgreSQL");
+
+    enlaceDescarga.style.display = "none";
+    document.body.appendChild(enlaceDescarga);
+    enlaceDescarga.click();
+
+    document.body.removeChild(enlaceDescarga);
+    setTimeout(() => URL.revokeObjectURL(urlArchivo), 100);
 }
